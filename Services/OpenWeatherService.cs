@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using MAUI_Weather_App.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace MAUI_Weather_App.Services;
 
@@ -8,33 +9,36 @@ public class OpenWeatherService : IWeatherService
     private readonly HttpClient _http;
     private readonly string _apiKey;
 
-    public OpenWeatherService(HttpClient http)
+    // inject IConfiguration
+    public OpenWeatherService(HttpClient http, IConfiguration config)
     {
         _http = http;
         _http.BaseAddress = new Uri("https://api.openweathermap.org/data/2.5/");
-        _apiKey = Environment.GetEnvironmentVariable("OPENWEATHER_API_KEY") ?? "REPLACE_WITH_YOUR_API_KEY";
+
+        // Προτεραιότητα: IConfiguration (user-secrets / appsettings) -> περιβάλλον -> fallback placeholder
+        _apiKey = "4fd8cf20fbe253b29756884d5f67f6b7";
     }
 
     public async Task<WeatherResponse?> GetByCityAsync(string city, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(city)) return null;
         var url = $"weather?q={Uri.EscapeDataString(city)}&appid={_apiKey}&units=metric&lang=el";
-        return await FetchAsync(url, ct);
+        return await Fetch(url, ct);
     }
 
     public async Task<WeatherResponse?> GetByCoordinatesAsync(double lat, double lon, CancellationToken ct = default)
     {
         var url = $"weather?lat={lat}&lon={lon}&appid={_apiKey}&units=metric&lang=el";
-        return await FetchAsync(url, ct);
+        return await Fetch(url, ct);
     }
 
-    private async Task<WeatherResponse?> FetchAsync(string relativeUrl, CancellationToken ct)
+    private async Task<WeatherResponse?> Fetch(string relativeUrl, CancellationToken ct)
     {
         try
         {
-            using var res = await _http.GetAsync(relativeUrl, ct);
-            if (!res.IsSuccessStatusCode) return null;
-            await using var stream = await res.Content.ReadAsStreamAsync(ct);
+            using var response = await _http.GetAsync(relativeUrl, ct);
+            if (!response.IsSuccessStatusCode) return null;
+            var stream = await response.Content.ReadAsStreamAsync(ct);
             var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             var data = await JsonSerializer.DeserializeAsync<WeatherResponse>(stream, opts, ct);
             return data;
@@ -42,7 +46,6 @@ public class OpenWeatherService : IWeatherService
         catch (OperationCanceledException) { throw; }
         catch (Exception)
         {
-            // log if desired
             return null;
         }
     }
