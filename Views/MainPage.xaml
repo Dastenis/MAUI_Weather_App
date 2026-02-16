@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="MAUI_Weather_App.Views.MainPage"
+    Title="MAUI Weather">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="18" Spacing="12">
+            <Label Text="Weather" FontSize="28" FontAttributes="Bold" HorizontalOptions="Center" />
+
+            <Entry Placeholder="Enter city (π.χ. Athens)" Text="{Binding CityInput}" />
+
+            <HorizontalStackLayout Spacing="8">
+                <Button Text="Get Weather" Command="{Binding FetchCommand}" HorizontalOptions="Fill"/>
+                <Button Text="Use Current Location" Command="{Binding UseLocationCommand}" HorizontalOptions="Fill"/>
+            </HorizontalStackLayout>
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+
+            <Border  Padding="12" >
+                <VerticalStackLayout>
+                    <Label Text="{Binding CityInput}" FontAttributes="Bold" FontSize="18"/>
+                    <Label Text="{Binding Temperature}" FontSize="36" FontAttributes="Bold" />
+                    <Label Text="{Binding Description}" FontSize="16" />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
