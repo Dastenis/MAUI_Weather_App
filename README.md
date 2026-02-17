@@ -56,18 +56,18 @@ MAUI_Weather_App
 
 ### 1. Clone the repository
 
-```bash```
 git clone https://github.com/USERNAME/MAUI_Weather_App.git
 cd MAUI_Weather_App
 
-
-Configure API Key
-
--This application uses the OpenWeather Current Weather API.
--You must insert your own key before running the app at OpenWeatherService.
 
 Get a free API key
 
 -Create an account: https://openweathermap.org/api
 -Generate a key (Current Weather Data API)
 -Wait ~2–10 minutes for activation
+
+Configure API Key
+
+-This application uses the OpenWeather Current Weather API.
+-You must insert your own key before running the app at OpenWeatherService.
+
