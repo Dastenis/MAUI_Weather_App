@@ -31,22 +31,23 @@ The project is designed as a clean, educational example of how to structure a re
 
 ## Project Structure
 
+```
 MAUI_Weather_App
 │
-├── Models → API response models
-├── Services → Weather / Location / Audio abstractions
-├── ViewModels → Business logic
-├── Views → UI pages
-├── Platforms → Empty (cross-platform approach)
-└── Resources → Sounds & assets
+├── Models        → API response models
+├── Services      → Weather / Location / Audio abstractions
+├── ViewModels    → Business logic
+├── Views         → UI pages
+├── Platforms     → Empty (cross-platform approach)
+└── Resources     → Sounds & assets
+```
 
 
 ---
 
 ## Requirements
 
-- Visual Studio 2022/2025 with .NET MAUI workload
-- .NET 8 SDK
+- Visual Studio 2022/2026 with .NET MAUI workload
 - Android Emulator or Windows Machine
 
 ---
