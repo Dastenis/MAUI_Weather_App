@@ -5,19 +5,31 @@ using Microsoft.Maui.Storage;
 
 namespace MAUI_Weather_App.Services.Audio
 {
+    /// <summary>
+    /// Cross-platform audio feedback service using Plugin.Maui.Audio.
+    /// Preloads success and failure sound players during initialization.
+    /// Designed to be non-blocking and fail-safe (no exceptions propagated to UI).
+    /// </summary>
     public class MauiAudioService : MAUI_Weather_App.Services.IAudioService
     {
         private readonly IAudioManager _audioManager;
+
+        // Cached players to avoid runtime file I/O and decoding latency
         private IAudioPlayer? _success;
         private IAudioPlayer? _failure;
 
         public MauiAudioService(IAudioManager audioManager)
         {
             _audioManager = audioManager ?? throw new ArgumentNullException(nameof(audioManager));
-            // Async init so ctor doesn't block
+
+            // Fire-and-forget initialization to avoid blocking app startup
             _ = InitAsync();
         }
 
+        /// <summary>
+        /// Preloads audio assets and creates reusable players.
+        /// Multiple path candidates are attempted to tolerate platform packaging differences.
+        /// </summary>
         private async Task InitAsync()
         {
             try
@@ -43,17 +55,26 @@ namespace MAUI_Weather_App.Services.Audio
                 };
 
                 _success = await CreatePlayerFromCandidatesAsync(successCandidates);
-                System.Diagnostics.Debug.WriteLine(_success != null ? "Audio: success player loaded" : "Audio: success player NOT loaded");
+                System.Diagnostics.Debug.WriteLine(_success != null
+                    ? "Audio: success player loaded"
+                    : "Audio: success player NOT loaded");
 
                 _failure = await CreatePlayerFromCandidatesAsync(failureCandidates);
-                System.Diagnostics.Debug.WriteLine(_failure != null ? "Audio: failure player loaded" : "Audio: failure player NOT loaded");
+                System.Diagnostics.Debug.WriteLine(_failure != null
+                    ? "Audio: failure player loaded"
+                    : "Audio: failure player NOT loaded");
             }
             catch (Exception ex)
             {
+                // Initialization failure should not crash the application
                 System.Diagnostics.Debug.WriteLine($"Audio init error: {ex.GetType().Name}: {ex.Message}");
             }
         }
 
+        /// <summary>
+        /// Attempts to create an audio player from multiple candidate file paths.
+        /// Stops at the first successfully loaded asset.
+        /// </summary>
         private async Task<IAudioPlayer?> CreatePlayerFromCandidatesAsync(string[] candidates)
         {
             foreach (var candidate in candidates)
@@ -61,6 +82,7 @@ namespace MAUI_Weather_App.Services.Audio
                 try
                 {
                     System.Diagnostics.Debug.WriteLine($"Audio: trying candidate '{candidate}'");
+
                     using var stream = await FileSystem.OpenAppPackageFileAsync(candidate);
                     if (stream == null)
                     {
@@ -77,24 +99,45 @@ namespace MAUI_Weather_App.Services.Audio
                 }
                 catch (Exception ex)
                 {
+                    // Ignore and attempt next candidate path
                     System.Diagnostics.Debug.WriteLine($"Audio: candidate {candidate} failed: {ex.GetType().Name}: {ex.Message}");
-                    // try next candidate
                 }
             }
 
+            // No valid audio asset found
             return null;
         }
 
+        /// <summary>
+        /// Plays success feedback sound if available.
+        /// Safe to call even when audio failed to initialize.
+        /// </summary>
         public void PlaySuccess()
         {
-            try { _success?.Play(); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Audio PlaySuccess error: {ex.Message}"); }
+            try
+            {
+                _success?.Play();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Audio PlaySuccess error: {ex.Message}");
+            }
         }
 
+        /// <summary>
+        /// Plays failure feedback sound if available.
+        /// Safe to call even when audio failed to initialize.
+        /// </summary>
         public void PlayFailure()
         {
-            try { _failure?.Play(); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Audio PlayFailure error: {ex.Message}"); }
+            try
+            {
+                _failure?.Play();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Audio PlayFailure error: {ex.Message}");
+            }
         }
     }
 }

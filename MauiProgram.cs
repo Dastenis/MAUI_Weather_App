@@ -1,12 +1,16 @@
-﻿using MAUI_Weather_App.Services;
-using MAUI_Weather_App.ViewModels;
+﻿using MAUI_Weather_App.ViewModels;
 using MAUI_Weather_App.Views;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection; // <- για AddHttpClient
-using Plugin.Maui.Audio; // AudioManager
+using MAUI_Weather_App.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Plugin.Maui.Audio;
+using System;
 
 namespace MAUI_Weather_App
 {
+    /// <summary>
+    /// Application composition root.
+    /// Configures DI, typed HttpClient and platform-agnostic services.
+    /// </summary>
     public static class MauiProgram
     {
         public static MauiApp CreateMauiApp()
@@ -15,26 +19,23 @@ namespace MAUI_Weather_App
 
             builder
                 .UseMauiApp<App>()
-                .ConfigureFonts(fonts => { /* ... */ });
+                .ConfigureFonts(fonts => { /* register fonts here */ });
 
-            // HttpClientFactory (requires Microsoft.Extensions.Http package)
+            // Typed HttpClient for OpenWeather (configured in DI)
             builder.Services.AddHttpClient<IWeatherService, OpenWeatherService>(client =>
             {
                 client.BaseAddress = new Uri("https://api.openweathermap.org/data/2.5/");
                 client.Timeout = TimeSpan.FromSeconds(15);
             });
 
-            // Register audio manager (Plugin.Maui.Audio) as singleton
+            // Plugin.Maui.Audio manager and single cross-platform IAudioService
             builder.Services.AddSingleton<IAudioManager>(_ => AudioManager.Current);
-            builder.Services.AddSingleton<IAudioService, MAUI_Weather_App.Services.Audio.MauiAudioService>();
-
-            // Register a platform-agnostic IAudioService wrapper that uses AudioManager
             builder.Services.AddSingleton<IAudioService, Services.Audio.MauiAudioService>();
 
-            // Other services
+            // Cross-platform location service
             builder.Services.AddSingleton<ILocationService, GeolocationService>();
 
-            // ViewModels & Views
+            // MVVM registrations
             builder.Services.AddTransient<WeatherViewModel>();
             builder.Services.AddSingleton<AppShell>();
             builder.Services.AddSingleton<MainPage>();
